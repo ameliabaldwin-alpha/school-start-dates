@@ -328,7 +328,7 @@
 
     const systemPrompt = `You are a helpful assistant that finds school start dates for school districts near a given location.
 
-Use web search to find districts within approximately ${radius} miles of the location, then search each district's website for their 2025-2026 school year calendar.
+Use web search to find districts within approximately ${radius} miles of the location, then search each district's website for their 2026-2027 school year calendar.
 
 Return ONLY a raw JSON object — no markdown, no explanation, no code fences. Structure:
 {
@@ -340,7 +340,7 @@ Return ONLY a raw JSON object — no markdown, no explanation, no code fences. S
       "city": "City, State",
       "startDate": "Month Day, Year or 'Not yet published'",
       "lastDay": "Month Day, Year or null",
-      "schoolYear": "2025-2026",
+      "schoolYear": "2026-2027",
       "type": "public" or "charter" or "private",
       "sourceUrl": "https://... or null",
       "confidence": "confirmed" or "estimated" or "unknown"
@@ -432,7 +432,7 @@ Return ONLY the raw JSON object with no surrounding text.`;
           <div class="start-date-badge ${hasDate ? '' : 'unknown'}">${hasDate ? d.startDate : 'Not yet published'}</div>
         </div>
         <div class="district-details">
-          <div class="detail-item"><strong>School year:</strong> ${d.schoolYear || '2025–2026'}</div>
+          <div class="detail-item"><strong>School year:</strong> ${d.schoolYear || '2026–2027'}</div>
           ${showLastDay && d.lastDay ? `<div class="detail-item"><strong>Last day:</strong> ${d.lastDay}</div>` : ''}
           <div class="detail-item">${confidence}</div>
         </div>
