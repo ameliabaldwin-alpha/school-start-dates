@@ -384,7 +384,16 @@ Return ONLY the raw JSON object with no surrounding text.`;
 
       const data = await response.json();
       const textBlock = (data.content || []).find(b => b.type === 'text');
-      if (!textBlock) throw new Error('No response received.');
+if (!textBlock) {
+  const allText = (data.content || [])
+    .filter(b => b.type === 'tool_result' || b.type === 'text')
+    .map(b => b.type === 'text' ? b.text : (b.content?.[0]?.text || ''))
+    .join('');
+  if (!allText) throw new Error('No response received.');
+  var raw = allText.trim().replace(/```json|```/g, '').trim();
+} else {
+  var raw = textBlock.text.trim().replace(/```json|```/g, '').trim();
+}
 
       let raw = textBlock.text.trim().replace(/```json|```/g, '').trim();
       let parsed;
