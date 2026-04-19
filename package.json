@@ -1,0 +1,12 @@
+{
+  "name": "school-start-dates",
+  "version": "1.0.0",
+  "description": "Find school start dates near any address",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

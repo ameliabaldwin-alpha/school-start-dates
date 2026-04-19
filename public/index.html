@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>School Start Dates Near You</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f4ef;
+    min-height: 100vh;
+    color: #1a1a1a;
+  }
+
+  header {
+    background: #fff;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: #1a6b4a;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px;
+  }
+
+  header h1 { font-size: 18px; font-weight: 600; }
+  header p { font-size: 13px; color: #666; margin-top: 1px; }
+
+  main {
+    max-width: 760px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .search-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 2rem;
+    border: 1px solid rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+  }
+
+  .search-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+  .search-card > p { font-size: 14px; color: #555; margin-bottom: 1.5rem; line-height: 1.5; }
+
+  .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+
+  .input-row input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .input-row input:focus { border-color: #1a6b4a; }
+
+  .radius-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem;
+  }
+
+  .radius-row label { font-size: 13px; color: #555; white-space: nowrap; }
+
+  .radius-row select {
+    padding: 8px 12px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .options-row {
+    display: flex; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap;
+  }
+
+  .checkbox-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: #444; cursor: pointer;
+    padding: 6px 12px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 20px;
+    user-select: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .checkbox-label.active {
+    background: #e8f5ee;
+    border-color: #1a6b4a;
+    color: #1a6b4a;
+  }
+
+  button#searchBtn {
+    width: 100%;
+    padding: 12px;
+    background: #1a6b4a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  button#searchBtn:hover { background: #155c3e; }
+  button#searchBtn:disabled { opacity: 0.55; cursor: default; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #status { font-size: 13px; color: #777; margin-top: 10px; min-height: 18px; text-align: center; }
+
+  #results { display: none; }
+
+  .results-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .results-header h3 { font-size: 16px; font-weight: 600; }
+  .results-header span { font-size: 13px; color: #777; }
+
+  .district-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 12px;
+    transition: border-color 0.15s;
+  }
+
+  .district-card:hover { border-color: rgba(0,0,0,0.18); }
+
+  .district-top {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+
+  .district-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .district-location { font-size: 13px; color: #666; }
+
+  .start-date-badge {
+    background: #e8f5ee;
+    color: #1a6b4a;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .start-date-badge.unknown { background: #f0f0ee; color: #888; }
+
+  .district-details {
+    display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap;
+  }
+
+  .detail-item { font-size: 12px; color: #666; }
+  .detail-item strong { color: #444; }
+
+  .source-link {
+    font-size: 12px; color: #1a6b4a; text-decoration: none;
+    margin-top: 8px; display: inline-block;
+  }
+
+  .source-link:hover { text-decoration: underline; }
+
+  .note-banner {
+    background: #fef9ec;
+    border: 1px solid #f0d060;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #7a5c00;
+    margin-bottom: 1rem;
+  }
+
+  .error-banner {
+    background: #fdf0f0;
+    border: 1px solid #f0b0b0;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 14px;
+    color: #c0392b;
+    margin-top: 1rem;
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    font-size: 12px;
+    color: #aaa;
+  }
+
+  @media (max-width: 500px) {
+    .input-row { flex-direction: column; }
+    .district-top { flex-direction: column; }
+    .start-date-badge { align-self: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">&#127979;</div>
+  <div>
+    <h1>School Start Dates</h1>
+    <p>Find when schools near any address return for the new year</p>
+  </div>
+</header>
+
+<main>
+  <div class="search-card">
+    <h2>Search by location</h2>
+    <p>Enter any address, city, or zip code to find school start dates for nearby public districts.</p>
+
+    <div class="input-row">
+      <input type="text" id="addressInput" placeholder="e.g. 123 Main St, Denver, CO or 80202" />
+    </div>
+
+    <div class="radius-row">
+      <label for="radiusSelect">Search radius:</label>
+      <select id="radiusSelect">
+        <option value="10">10 miles</option>
+        <option value="25" selected>25 miles</option>
+        <option value="50">50 miles</option>
+        <option value="100">100 miles</option>
+      </select>
+    </div>
+
+    <div class="options-row" id="optionsRow">
+      <label class="checkbox-label" data-key="includePrivate">Include private schools</label>
+      <label class="checkbox-label active" data-key="includeCharter">Include charter schools</label>
+      <label class="checkbox-label" data-key="showLastDay">Show last day of school</label>
+    </div>
+
+    <button id="searchBtn" onclick="runSearch()">
+      <div class="spinner" id="spinner"></div>
+      <span id="btnText">Find school start dates</span>
+    </button>
+
+    <div id="status"></div>
+    <div id="errorBox"></div>
+  </div>
+
+  <div id="results"></div>
+</main>
+
+<footer>
+  Data sourced in real-time from public school district websites. Dates may change — always verify with your district.
+</footer>
+
+<script>
+  // Toggle pill checkboxes
+  document.querySelectorAll('.checkbox-label').forEach(label => {
+    label.addEventListener('click', () => label.classList.toggle('active'));
+  });
+
+  function getOptions() {
+    return {
+      includePrivate: document.querySelector('[data-key="includePrivate"]').classList.contains('active'),
+      includeCharter: document.querySelector('[data-key="includeCharter"]').classList.contains('active'),
+      showLastDay: document.querySelector('[data-key="showLastDay"]').classList.contains('active'),
+    };
+  }
+
+  async function runSearch() {
+    const address = document.getElementById('addressInput').value.trim();
+    if (!address) {
+      document.getElementById('status').textContent = 'Please enter an address or location.';
+      return;
+    }
+
+    const radius = document.getElementById('radiusSelect').value;
+    const { includePrivate, includeCharter, showLastDay } = getOptions();
+
+    const btn = document.getElementById('searchBtn');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btnText');
+    const status = document.getElementById('status');
+    const errorBox = document.getElementById('errorBox');
+    const results = document.getElementById('results');
+
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    btnText.textContent = 'Searching...';
+    errorBox.innerHTML = '';
+    results.style.display = 'none';
+    results.innerHTML = '';
+
+    const messages = [
+      'Finding school districts near your location...',
+      'Looking up district calendars...',
+      'Checking start dates for each district...',
+      'Almost done...'
+    ];
+    let msgIdx = 0;
+    status.textContent = messages[0];
+    const msgInterval = setInterval(() => {
+      msgIdx = (msgIdx + 1) % messages.length;
+      status.textContent = messages[msgIdx];
+    }, 3500);
+
+    const schoolTypes = includePrivate
+      ? 'public, charter, and private'
+      : includeCharter ? 'public and charter' : 'public';
+
+    const systemPrompt = `You are a helpful assistant that finds school start dates for school districts near a given location.
+
+Use web search to find districts within approximately ${radius} miles of the location, then search each district's website for their 2025-2026 school year calendar.
+
+Return ONLY a raw JSON object — no markdown, no explanation, no code fences. Structure:
+{
+  "location": "resolved city and state",
+  "note": "any caveat or null",
+  "districts": [
+    {
+      "name": "Full District Name",
+      "city": "City, State",
+      "startDate": "Month Day, Year or 'Not yet published'",
+      "lastDay": "Month Day, Year or null",
+      "schoolYear": "2025-2026",
+      "type": "public" or "charter" or "private",
+      "sourceUrl": "https://... or null",
+      "confidence": "confirmed" or "estimated" or "unknown"
+    }
+  ]
+}
+
+Include up to 8 districts, sorted by start date (earliest first).
+Only include ${schoolTypes} schools.
+${showLastDay ? 'Include last day of school when available.' : ''}
+Return ONLY the raw JSON object with no surrounding text.`;
+
+    try {
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          system: systemPrompt,
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+          messages: [{ role: 'user', content: `Find school start dates within ${radius} miles of: ${address}` }]
+        })
+      });
+
+      clearInterval(msgInterval);
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error?.message || `Server error ${response.status}`);
+      }
+
+      const data = await response.json();
+      const textBlock = (data.content || []).find(b => b.type === 'text');
+      if (!textBlock) throw new Error('No response received.');
+
+      let raw = textBlock.text.trim().replace(/```json|```/g, '').trim();
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (match) parsed = JSON.parse(match[0]);
+        else throw new Error('Could not read the school data returned.');
+      }
+
+      renderResults(parsed, address, radius, showLastDay);
+      status.textContent = '';
+
+    } catch (err) {
+      clearInterval(msgInterval);
+      status.textContent = '';
+      errorBox.innerHTML = `<div class="error-banner">Something went wrong: ${err.message}. Please try again.</div>`;
+    }
+
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnText.textContent = 'Find school start dates';
+  }
+
+  function renderResults(data, address, radius, showLastDay) {
+    const results = document.getElementById('results');
+    const districts = data.districts || [];
+
+    if (!districts.length) {
+      results.innerHTML = `<div class="error-banner">No school districts found near "${address}". Try a larger radius or different location.</div>`;
+      results.style.display = 'block';
+      return;
+    }
+
+    let html = `<div class="results-header">
+      <h3>Results near ${data.location || address}</h3>
+      <span>${districts.length} district${districts.length !== 1 ? 's' : ''} &bull; ${radius}-mile radius</span>
+    </div>`;
+
+    if (data.note) html += `<div class="note-banner">${data.note}</div>`;
+
+    for (const d of districts) {
+      const hasDate = d.startDate && d.startDate !== 'Not yet published';
+      const typeLabel = d.type === 'charter' ? ' &bull; Charter' : d.type === 'private' ? ' &bull; Private' : '';
+      const confidence = d.confidence === 'confirmed' ? '&#10003; Confirmed' : d.confidence === 'estimated' ? '~ Estimated' : 'Unverified';
+
+      html += `<div class="district-card">
+        <div class="district-top">
+          <div>
+            <div class="district-name">${d.name}</div>
+            <div class="district-location">${d.city}${typeLabel}</div>
+          </div>
+          <div class="start-date-badge ${hasDate ? '' : 'unknown'}">${hasDate ? d.startDate : 'Not yet published'}</div>
+        </div>
+        <div class="district-details">
+          <div class="detail-item"><strong>School year:</strong> ${d.schoolYear || '2025–2026'}</div>
+          ${showLastDay && d.lastDay ? `<div class="detail-item"><strong>Last day:</strong> ${d.lastDay}</div>` : ''}
+          <div class="detail-item">${confidence}</div>
+        </div>
+        ${d.sourceUrl ? `<a href="${d.sourceUrl}" class="source-link" target="_blank">View district calendar &#8599;</a>` : ''}
+      </div>`;
+    }
+
+    results.innerHTML = html;
+    results.style.display = 'block';
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('addressInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') runSearch();
+  });
+</script>
+</body>
+</html>
