@@ -14,218 +14,50 @@
 </script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f5f4ef;
-    min-height: 100vh;
-    color: #1a1a1a;
-  }
-
-  header {
-    background: #fff;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-    padding: 1.25rem 2rem;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .logo-icon {
-    width: 36px; height: 36px;
-    background: #1a6b4a;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 18px;
-  }
-
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4ef; min-height: 100vh; color: #1a1a1a; }
+  header { background: #fff; border-bottom: 1px solid rgba(0,0,0,0.08); padding: 1.25rem 2rem; display: flex; align-items: center; gap: 12px; }
+  .logo-icon { width: 36px; height: 36px; background: #1a6b4a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
   header h1 { font-size: 18px; font-weight: 600; }
   header p { font-size: 13px; color: #666; margin-top: 1px; }
-
-  main {
-    max-width: 760px;
-    margin: 2.5rem auto;
-    padding: 0 1.5rem;
-  }
-
-  .search-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 2rem;
-    border: 1px solid rgba(0,0,0,0.08);
-    margin-bottom: 1.5rem;
-  }
-
+  main { max-width: 760px; margin: 2.5rem auto; padding: 0 1.5rem; }
+  .search-card { background: #fff; border-radius: 14px; padding: 2rem; border: 1px solid rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
   .search-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
   .search-card > p { font-size: 14px; color: #555; margin-bottom: 1.5rem; line-height: 1.5; }
-
   .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-
-  .input-row input {
-    flex: 1;
-    padding: 10px 14px;
-    border: 1px solid rgba(0,0,0,0.15);
-    border-radius: 8px;
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
+  .input-row input { flex: 1; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.15s; }
   .input-row input:focus { border-color: #1a6b4a; }
-
-  .radius-row {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem;
-  }
-
+  .radius-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
   .radius-row label { font-size: 13px; color: #555; white-space: nowrap; }
-
-  .radius-row select {
-    padding: 8px 12px;
-    border: 1px solid rgba(0,0,0,0.15);
-    border-radius: 8px;
-    font-size: 14px;
-    background: #fff;
-    outline: none;
-    cursor: pointer;
-  }
-
-  .options-row {
-    display: flex; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap;
-  }
-
-  .checkbox-label {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 13px; color: #444; cursor: pointer;
-    padding: 6px 12px;
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 20px;
-    user-select: none;
-    transition: background 0.15s, border-color 0.15s;
-  }
-
-  .checkbox-label.active {
-    background: #e8f5ee;
-    border-color: #1a6b4a;
-    color: #1a6b4a;
-  }
-
-  button#searchBtn {
-    width: 100%;
-    padding: 12px;
-    background: #1a6b4a;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s, opacity 0.15s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-
+  .radius-row select { padding: 8px 12px; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; font-size: 14px; background: #fff; outline: none; cursor: pointer; }
+  .options-row { display: flex; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #444; cursor: pointer; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.12); border-radius: 20px; user-select: none; transition: background 0.15s, border-color 0.15s; }
+  .checkbox-label.active { background: #e8f5ee; border-color: #1a6b4a; color: #1a6b4a; }
+  button#searchBtn { width: 100%; padding: 12px; background: #1a6b4a; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.15s, opacity 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
   button#searchBtn:hover { background: #155c3e; }
   button#searchBtn:disabled { opacity: 0.55; cursor: default; }
-
-  .spinner {
-    width: 16px; height: 16px;
-    border: 2px solid rgba(255,255,255,0.4);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: none;
-  }
-
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
   #status { font-size: 13px; color: #777; margin-top: 10px; min-height: 18px; text-align: center; }
-
   #results { display: none; }
-
-  .results-header {
-    display: flex; align-items: baseline; justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-
+  .results-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1rem; }
   .results-header h3 { font-size: 16px; font-weight: 600; }
   .results-header span { font-size: 13px; color: #777; }
-
-  .district-card {
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid rgba(0,0,0,0.08);
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 12px;
-    transition: border-color 0.15s;
-  }
-
+  .district-card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); padding: 1.25rem 1.5rem; margin-bottom: 12px; transition: border-color 0.15s; }
   .district-card:hover { border-color: rgba(0,0,0,0.18); }
-
-  .district-top {
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-  }
-
+  .district-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .district-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
   .district-location { font-size: 13px; color: #666; }
-
-  .start-date-badge {
-    background: #e8f5ee;
-    color: #1a6b4a;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
+  .start-date-badge { background: #e8f5ee; color: #1a6b4a; border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
   .start-date-badge.unknown { background: #f0f0ee; color: #888; }
-
-  .district-details {
-    display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap;
-  }
-
+  .district-details { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
   .detail-item { font-size: 12px; color: #666; }
   .detail-item strong { color: #444; }
-
-  .source-link {
-    font-size: 12px; color: #1a6b4a; text-decoration: none;
-    margin-top: 8px; display: inline-block;
-  }
-
+  .source-link { font-size: 12px; color: #1a6b4a; text-decoration: none; margin-top: 8px; display: inline-block; }
   .source-link:hover { text-decoration: underline; }
-
-  .note-banner {
-    background: #fef9ec;
-    border: 1px solid #f0d060;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 13px;
-    color: #7a5c00;
-    margin-bottom: 1rem;
-  }
-
-  .error-banner {
-    background: #fdf0f0;
-    border: 1px solid #f0b0b0;
-    border-radius: 8px;
-    padding: 14px;
-    font-size: 14px;
-    color: #c0392b;
-    margin-top: 1rem;
-  }
-
-  footer {
-    text-align: center;
-    padding: 2rem 1.5rem;
-    font-size: 12px;
-    color: #aaa;
-  }
-
-  @media (max-width: 500px) {
-    .input-row { flex-direction: column; }
-    .district-top { flex-direction: column; }
-    .start-date-badge { align-self: flex-start; }
-  }
+  .note-banner { background: #fef9ec; border: 1px solid #f0d060; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #7a5c00; margin-bottom: 1rem; }
+  .error-banner { background: #fdf0f0; border: 1px solid #f0b0b0; border-radius: 8px; padding: 14px; font-size: 14px; color: #c0392b; margin-top: 1rem; }
+  footer { text-align: center; padding: 2rem 1.5rem; font-size: 12px; color: #aaa; }
+  @media (max-width: 500px) { .input-row { flex-direction: column; } .district-top { flex-direction: column; } .start-date-badge { align-self: flex-start; } }
 </style>
 </head>
 <body>
@@ -234,7 +66,7 @@
   <div class="logo-icon">&#127979;</div>
   <div>
     <h1>School Start Dates</h1>
-    <p>Find when schools near any address return for the new year</p>
+    <p>Look up first day of school for any address</p>
   </div>
 </header>
 
@@ -242,11 +74,9 @@
   <div class="search-card">
     <h2>Search by location</h2>
     <p>Enter any address, city, or zip code to find school start dates for nearby schools.</p>
-
     <div class="input-row">
       <input type="text" id="addressInput" placeholder="e.g. 123 Main St, Denver, CO or 80202" />
     </div>
-
     <div class="radius-row">
       <label for="radiusSelect">Search radius:</label>
       <select id="radiusSelect">
@@ -256,28 +86,24 @@
         <option value="100">100 miles</option>
       </select>
     </div>
-
     <div class="options-row" id="optionsRow">
       <label class="checkbox-label active" data-key="includePrivate">Private schools</label>
       <label class="checkbox-label" data-key="includePublic">Public schools</label>
       <label class="checkbox-label" data-key="includeCharter">Charter schools</label>
       <label class="checkbox-label" data-key="showLastDay">Show last day of school</label>
     </div>
-
     <button id="searchBtn" onclick="runSearch()">
       <div class="spinner" id="spinner"></div>
       <span id="btnText">Find school start dates</span>
     </button>
-
     <div id="status"></div>
     <div id="errorBox"></div>
   </div>
-
   <div id="results"></div>
 </main>
 
 <footer>
-  Data sourced in real-time from school websites. Dates may change — always verify with your school directly.
+  Data sourced in real-time from school websites. Dates may change — always verify with the school directly.
 </footer>
 
 <script>
@@ -318,18 +144,10 @@
     results.style.display = 'none';
     results.innerHTML = '';
 
-    const messages = [
-      'Finding schools near your location...',
-      'Looking up school calendars...',
-      'Checking start dates...',
-      'Almost done...'
-    ];
+    const messages = ['Finding schools near your location...', 'Looking up school calendars...', 'Checking start dates...', 'Almost done...'];
     let msgIdx = 0;
     status.textContent = messages[0];
-    const msgInterval = setInterval(() => {
-      msgIdx = (msgIdx + 1) % messages.length;
-      status.textContent = messages[msgIdx];
-    }, 3500);
+    const msgInterval = setInterval(() => { msgIdx = (msgIdx + 1) % messages.length; status.textContent = messages[msgIdx]; }, 3500);
 
     const types = [
       includePrivate ? 'private' : '',
@@ -339,42 +157,45 @@
 
     const systemPrompt = `You are a helpful assistant that finds school start dates for schools near a given location.
 
-Use web search to find schools within approximately ${radius} miles of the location. Search each school's website for their 2026-2027 school year start date. If 2026-2027 has not been published yet, fall back to the 2025-2026 start date and set schoolYear to "2025-2026" in the response.
+Search for schools within approximately ${radius} miles of the given location. For each school or district, find their 2026-2027 school year start date. If 2026-2027 is not yet published, use the 2025-2026 date instead and note the year.
 
-Return ONLY a raw JSON object — no markdown, no explanation, no code fences. Structure:
+Return ONLY a valid raw JSON object with no markdown, no code fences, no explanation. Use exactly this structure:
 {
-  "location": "resolved city and state",
-  "note": "any caveat or null",
+  "location": "City, State",
+  "note": "brief note about data availability or null",
   "districts": [
     {
-      "name": "Full School or District Name",
+      "name": "School or District Name",
       "city": "City, State",
       "startDate": "Month Day, Year",
       "lastDay": "Month Day, Year or null",
-      "schoolYear": "2026-2027 or 2025-2026",
-      "type": "public" or "charter" or "private",
-      "sourceUrl": "https://... or null",
-      "confidence": "confirmed" or "estimated" or "unknown"
+      "schoolYear": "2026-2027",
+      "type": "private",
+      "sourceUrl": "https://example.com or null",
+      "confidence": "confirmed"
     }
   ]
 }
 
-Only include ${types} schools. For private schools, actively search by name — do not rely only on district searches.
-Include up to 8 results, sorted by start date earliest first.
-Always return a startDate — never return "Not yet published". If 2026-2027 is unavailable use 2025-2026.
-${showLastDay ? 'Include last day of school when available.' : ''}
-Return ONLY the raw JSON object with no surrounding text.`;
+Rules:
+- Only include ${types} schools
+- Include up to 8 results sorted by start date
+- Never use "Not yet published" — always give a real date
+- If 2026-2027 unavailable, use 2025-2026 and set schoolYear accordingly
+- confidence must be: "confirmed", "estimated", or "unknown"
+- type must be: "public", "charter", or "private"
+${showLastDay ? '- Include last day of school when known' : '- Set lastDay to null'}
+- Return ONLY the JSON object, nothing else`;
 
     try {
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
+          model: 'claude-haiku-4-5',
           max_tokens: 2000,
           system: systemPrompt,
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-          messages: [{ role: 'user', content: `Find school start dates within ${radius} miles of: ${address}` }]
+          messages: [{ role: 'user', content: `Find school start dates within ${radius} miles of: ${address}. Only include ${types} schools.` }]
         })
       });
 
@@ -386,16 +207,10 @@ Return ONLY the raw JSON object with no surrounding text.`;
       }
 
       const data = await response.json();
-      const allText = (data.content || [])
-        .filter(b => b.type === 'text')
-        .map(b => b.text)
-        .join('');
-if (!allText) {
-  const stopReason = data.stop_reason || 'unknown';
-  const blockTypes = (data.content || []).map(b => b.type).join(', ');
-  throw new Error(`No text in response. Stop reason: ${stopReason}. Block types: ${blockTypes}`);
-}
-      let raw = allText.trim().replace(/```json|```/g, '').trim();
+      const textBlock = (data.content || []).find(b => b.type === 'text');
+      if (!textBlock) throw new Error('No response received.');
+
+      let raw = textBlock.text.trim().replace(/```json|```/g, '').trim();
       let parsed;
       try {
         parsed = JSON.parse(raw);
@@ -447,7 +262,7 @@ if (!allText) {
             <div class="district-name">${d.name}</div>
             <div class="district-location">${d.city}${typeLabel}</div>
           </div>
-          <div class="start-date-badge ${hasDate ? '' : 'unknown'}">${hasDate ? d.startDate : 'Not yet published'}</div>
+          <div class="start-date-badge ${hasDate ? '' : 'unknown'}">${hasDate ? d.startDate : 'Unknown'}</div>
         </div>
         <div class="district-details">
           <div class="detail-item"><strong>School year:</strong> ${d.schoolYear || '2026-2027'}</div>
