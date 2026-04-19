@@ -18,7 +18,7 @@ app.post('/api/search', async (req, res) => {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'tools-2024-04-04'
+        'anthropic-beta': 'interleaved-thinking-2025-05-14'
       },
       body: JSON.stringify(req.body)
     });
