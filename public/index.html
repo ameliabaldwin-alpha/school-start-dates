@@ -234,7 +234,7 @@
   <div class="logo-icon">&#127979;</div>
   <div>
     <h1>School Start Dates</h1>
-    <p>Find when schools near any address return for the school year</p>
+    <p>Find when schools near any address return for the new year</p>
   </div>
 </header>
 
@@ -277,7 +277,7 @@
 </main>
 
 <footer>
-  Data sourced in real-time from school websites. Dates may change — always verify with the school directly.
+  Data sourced in real-time from school websites. Dates may change — always verify with your school directly.
 </footer>
 
 <script>
@@ -386,10 +386,13 @@ Return ONLY the raw JSON object with no surrounding text.`;
       }
 
       const data = await response.json();
-      const textBlock = (data.content || []).find(b => b.type === 'text');
-      if (!textBlock) throw new Error('No response received.');
+      const allText = (data.content || [])
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join('');
+      if (!allText) throw new Error('No response received.');
 
-      let raw = textBlock.text.trim().replace(/```json|```/g, '').trim();
+      let raw = allText.trim().replace(/```json|```/g, '').trim();
       let parsed;
       try {
         parsed = JSON.parse(raw);
