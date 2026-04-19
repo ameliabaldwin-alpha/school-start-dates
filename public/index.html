@@ -10,10 +10,9 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-EP7QR4DS9R');
 </script>
- <style>
+<style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
@@ -235,14 +234,14 @@
   <div class="logo-icon">&#127979;</div>
   <div>
     <h1>School Start Dates</h1>
-    <p>Find when schools near any address return for the new year</p>
+    <p>Find when schools near any address return for the school year</p>
   </div>
 </header>
 
 <main>
   <div class="search-card">
     <h2>Search by location</h2>
-    <p>Enter any address, city, or zip code to find school start dates for nearby public districts.</p>
+    <p>Enter any address, city, or zip code to find school start dates for nearby schools.</p>
 
     <div class="input-row">
       <input type="text" id="addressInput" placeholder="e.g. 123 Main St, Denver, CO or 80202" />
@@ -259,8 +258,9 @@
     </div>
 
     <div class="options-row" id="optionsRow">
-      <label class="checkbox-label" data-key="includePrivate">Include private schools</label>
-      <label class="checkbox-label active" data-key="includeCharter">Include charter schools</label>
+      <label class="checkbox-label active" data-key="includePrivate">Private schools</label>
+      <label class="checkbox-label" data-key="includePublic">Public schools</label>
+      <label class="checkbox-label" data-key="includeCharter">Charter schools</label>
       <label class="checkbox-label" data-key="showLastDay">Show last day of school</label>
     </div>
 
@@ -277,11 +277,10 @@
 </main>
 
 <footer>
-  Data sourced in real-time from public school district websites. Dates may change — always verify with the district.
+  Data sourced in real-time from school websites. Dates may change — always verify with the school directly.
 </footer>
 
 <script>
-  // Toggle pill checkboxes
   document.querySelectorAll('.checkbox-label').forEach(label => {
     label.addEventListener('click', () => label.classList.toggle('active'));
   });
@@ -289,6 +288,7 @@
   function getOptions() {
     return {
       includePrivate: document.querySelector('[data-key="includePrivate"]').classList.contains('active'),
+      includePublic: document.querySelector('[data-key="includePublic"]').classList.contains('active'),
       includeCharter: document.querySelector('[data-key="includeCharter"]').classList.contains('active'),
       showLastDay: document.querySelector('[data-key="showLastDay"]').classList.contains('active'),
     };
@@ -302,7 +302,7 @@
     }
 
     const radius = document.getElementById('radiusSelect').value;
-    const { includePrivate, includeCharter, showLastDay } = getOptions();
+    const { includePrivate, includePublic, includeCharter, showLastDay } = getOptions();
 
     const btn = document.getElementById('searchBtn');
     const spinner = document.getElementById('spinner');
@@ -319,9 +319,9 @@
     results.innerHTML = '';
 
     const messages = [
-      'Finding school districts near your location...',
-      'Looking up district calendars...',
-      'Checking start dates for each district...',
+      'Finding schools near your location...',
+      'Looking up school calendars...',
+      'Checking start dates...',
       'Almost done...'
     ];
     let msgIdx = 0;
@@ -331,13 +331,15 @@
       status.textContent = messages[msgIdx];
     }, 3500);
 
-    const schoolTypes = includePrivate
-      ? 'public, charter, and private'
-      : includeCharter ? 'public and charter' : 'public';
+    const types = [
+      includePrivate ? 'private' : '',
+      includePublic ? 'public' : '',
+      includeCharter ? 'charter' : ''
+    ].filter(Boolean).join(', ') || 'public';
 
-    const systemPrompt = `You are a helpful assistant that finds school start dates for school districts near a given location.
+    const systemPrompt = `You are a helpful assistant that finds school start dates for schools near a given location.
 
-Use web search to find districts within approximately ${radius} miles of the location, then search each district's website for their 2026-2027 school year calendar.
+Use web search to find schools within approximately ${radius} miles of the location. Search each school's website for their 2026-2027 school year start date. If 2026-2027 has not been published yet, fall back to the 2025-2026 start date and set schoolYear to "2025-2026" in the response.
 
 Return ONLY a raw JSON object — no markdown, no explanation, no code fences. Structure:
 {
@@ -345,11 +347,11 @@ Return ONLY a raw JSON object — no markdown, no explanation, no code fences. S
   "note": "any caveat or null",
   "districts": [
     {
-      "name": "Full District Name",
+      "name": "Full School or District Name",
       "city": "City, State",
-      "startDate": "Month Day, Year or 'Not yet published'",
+      "startDate": "Month Day, Year",
       "lastDay": "Month Day, Year or null",
-      "schoolYear": "2026-2027",
+      "schoolYear": "2026-2027 or 2025-2026",
       "type": "public" or "charter" or "private",
       "sourceUrl": "https://... or null",
       "confidence": "confirmed" or "estimated" or "unknown"
@@ -357,8 +359,9 @@ Return ONLY a raw JSON object — no markdown, no explanation, no code fences. S
   ]
 }
 
-Include up to 8 districts, sorted by start date (earliest first).
-Only include ${schoolTypes} schools.
+Only include ${types} schools. For private schools, actively search by name — do not rely only on district searches.
+Include up to 8 results, sorted by start date earliest first.
+Always return a startDate — never return "Not yet published". If 2026-2027 is unavailable use 2025-2026.
 ${showLastDay ? 'Include last day of school when available.' : ''}
 Return ONLY the raw JSON object with no surrounding text.`;
 
@@ -383,8 +386,8 @@ Return ONLY the raw JSON object with no surrounding text.`;
       }
 
       const data = await response.json();
-    const textBlock = (data.content || []).find(b => b.type === 'text');
-if (!textBlock) throw new Error('No response received.');
+      const textBlock = (data.content || []).find(b => b.type === 'text');
+      if (!textBlock) throw new Error('No response received.');
 
       let raw = textBlock.text.trim().replace(/```json|```/g, '').trim();
       let parsed;
@@ -415,21 +418,21 @@ if (!textBlock) throw new Error('No response received.');
     const districts = data.districts || [];
 
     if (!districts.length) {
-      results.innerHTML = `<div class="error-banner">No school districts found near "${address}". Try a larger radius or different location.</div>`;
+      results.innerHTML = `<div class="error-banner">No schools found near "${address}". Try a larger radius or different location.</div>`;
       results.style.display = 'block';
       return;
     }
 
     let html = `<div class="results-header">
       <h3>Results near ${data.location || address}</h3>
-      <span>${districts.length} district${districts.length !== 1 ? 's' : ''} &bull; ${radius}-mile radius</span>
+      <span>${districts.length} school${districts.length !== 1 ? 's' : ''} &bull; ${radius}-mile radius</span>
     </div>`;
 
     if (data.note) html += `<div class="note-banner">${data.note}</div>`;
 
     for (const d of districts) {
       const hasDate = d.startDate && d.startDate !== 'Not yet published';
-      const typeLabel = d.type === 'charter' ? ' &bull; Charter' : d.type === 'private' ? ' &bull; Private' : '';
+      const typeLabel = d.type === 'charter' ? ' &bull; Charter' : d.type === 'private' ? ' &bull; Private' : ' &bull; Public';
       const confidence = d.confidence === 'confirmed' ? '&#10003; Confirmed' : d.confidence === 'estimated' ? '~ Estimated' : 'Unverified';
 
       html += `<div class="district-card">
@@ -441,11 +444,11 @@ if (!textBlock) throw new Error('No response received.');
           <div class="start-date-badge ${hasDate ? '' : 'unknown'}">${hasDate ? d.startDate : 'Not yet published'}</div>
         </div>
         <div class="district-details">
-          <div class="detail-item"><strong>School year:</strong> ${d.schoolYear || '2026–2027'}</div>
+          <div class="detail-item"><strong>School year:</strong> ${d.schoolYear || '2026-2027'}</div>
           ${showLastDay && d.lastDay ? `<div class="detail-item"><strong>Last day:</strong> ${d.lastDay}</div>` : ''}
           <div class="detail-item">${confidence}</div>
         </div>
-        ${d.sourceUrl ? `<a href="${d.sourceUrl}" class="source-link" target="_blank">View district calendar &#8599;</a>` : ''}
+        ${d.sourceUrl ? `<a href="${d.sourceUrl}" class="source-link" target="_blank">View school calendar &#8599;</a>` : ''}
       </div>`;
     }
 
