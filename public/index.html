@@ -390,8 +390,11 @@ Return ONLY the raw JSON object with no surrounding text.`;
         .filter(b => b.type === 'text')
         .map(b => b.text)
         .join('');
-      if (!allText) throw new Error('No response received.');
-
+if (!allText) {
+  const stopReason = data.stop_reason || 'unknown';
+  const blockTypes = (data.content || []).map(b => b.type).join(', ');
+  throw new Error(`No text in response. Stop reason: ${stopReason}. Block types: ${blockTypes}`);
+}
       let raw = allText.trim().replace(/```json|```/g, '').trim();
       let parsed;
       try {
