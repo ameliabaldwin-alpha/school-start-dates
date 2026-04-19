@@ -40,13 +40,24 @@ app.post('/api/search', async (req, res) => {
         return res.json(data);
       }
 
-      // If paused for tool use, add assistant response and continue
+      // If paused mid tool use, append assistant turn and pass back tool results
       if (data.stop_reason === 'pause_turn' || data.stop_reason === 'tool_use') {
-        messages = [
-          ...messages,
-          { role: 'assistant', content: data.content },
-          { role: 'user', content: [{ type: 'text', text: 'Continue.' }] }
-        ];
+        // Collect any tool use blocks that need results
+        const toolUseBlocks = data.content.filter(b => b.type === 'server_tool_use' || b.type === 'tool_use');
+
+        messages = [...messages, { role: 'assistant', content: data.content }];
+
+        if (toolUseBlocks.length > 0) {
+          // Build tool results for each tool use block
+          const toolResults = toolUseBlocks.map(block => ({
+            type: 'tool_result',
+            tool_use_id: block.id,
+            content: 'Please continue searching and compile the final JSON response.'
+          }));
+          messages = [...messages, { role: 'user', content: toolResults }];
+        } else {
+          messages = [...messages, { role: 'user', content: [{ type: 'text', text: 'Continue and return the final JSON.' }] }];
+        }
         continue;
       }
 
