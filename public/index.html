@@ -66,7 +66,7 @@
   <div class="logo-icon">&#127979;</div>
   <div>
     <h1>School Start Dates</h1>
-    <p>Look up first day of school for any address</p>
+    <p>Find when schools near any address return for the new year</p>
   </div>
 </header>
 
@@ -103,7 +103,7 @@
 </main>
 
 <footer>
-  Data sourced in real-time from school websites. Dates may change — always verify with the school directly.
+  Data sourced in real-time from school websites. Dates may change — always verify with your school directly.
 </footer>
 
 <script>
@@ -120,9 +120,23 @@
     };
   }
 
+  async function resolveLocation(input) {
+    if (/^\d{5}$/.test(input.trim())) {
+      try {
+        const r = await fetch('https://api.zippopotam.us/us/' + input.trim());
+        if (r.ok) {
+          const d = await r.json();
+          const place = d.places[0];
+          return place['place name'] + ', ' + place['state abbreviation'] + ' ' + input.trim();
+        }
+      } catch(e) {}
+    }
+    return input;
+  }
+
   async function runSearch() {
-    const address = document.getElementById('addressInput').value.trim();
-    if (!address) {
+    const rawInput = document.getElementById('addressInput').value.trim();
+    if (!rawInput) {
       document.getElementById('status').textContent = 'Please enter an address or location.';
       return;
     }
@@ -148,6 +162,8 @@
     let msgIdx = 0;
     status.textContent = messages[0];
     const msgInterval = setInterval(() => { msgIdx = (msgIdx + 1) % messages.length; status.textContent = messages[msgIdx]; }, 3500);
+
+    const address = await resolveLocation(rawInput);
 
     const types = [
       includePrivate ? 'private' : '',
