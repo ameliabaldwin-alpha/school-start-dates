@@ -54,8 +54,29 @@
   .detail-item strong { color: #444; }
   .source-link { font-size: 12px; color: #1a6b4a; text-decoration: none; margin-top: 8px; display: inline-block; }
   .source-link:hover { text-decoration: underline; }
+
+  /* Calendar section inside each school card */
+  .calendar-section { margin-top: 12px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 12px; }
+  .calendar-section-title { font-size: 12px; font-weight: 600; color: #444; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .calendar-event { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: #555; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.04); }
+  .calendar-event:last-child { border-bottom: none; }
+  .calendar-event-name { color: #333; }
+  .calendar-event-date { color: #888; white-space: nowrap; margin-left: 12px; }
+  .calendar-event-type { font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 8px; white-space: nowrap; }
+  .type-break { background: #e8f0fe; color: #3b5bdb; }
+  .type-holiday { background: #fff3e0; color: #e67700; }
+
+  /* Shared calendar summary card */
+  .summary-card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); padding: 1.25rem 1.5rem; margin-bottom: 20px; }
+  .summary-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #1a6b4a; }
+  .summary-event { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: #555; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+  .summary-event:last-child { border-bottom: none; }
+  .summary-event-name { color: #333; font-weight: 500; }
+  .summary-event-date { color: #666; }
+
   .note-banner { background: #fef9ec; border: 1px solid #f0d060; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #7a5c00; margin-bottom: 1rem; }
   .error-banner { background: #fdf0f0; border: 1px solid #f0b0b0; border-radius: 8px; padding: 14px; font-size: 14px; color: #c0392b; margin-top: 1rem; }
+  .section-label { font-size: 13px; font-weight: 600; color: #444; margin: 20px 0 10px; }
   footer { text-align: center; padding: 2rem 1.5rem; font-size: 12px; color: #aaa; }
   @media (max-width: 500px) { .input-row { flex-direction: column; } .district-top { flex-direction: column; } .start-date-badge { align-self: flex-start; } }
 </style>
@@ -66,7 +87,7 @@
   <div class="logo-icon">&#127979;</div>
   <div>
     <h1>School Start Dates</h1>
-    <p>Find when schools near any address return for the new year</p>
+    <p>Look up first day of school for any address</p>
   </div>
 </header>
 
@@ -90,7 +111,8 @@
       <label class="checkbox-label active" data-key="includePrivate">Private schools</label>
       <label class="checkbox-label" data-key="includePublic">Public schools</label>
       <label class="checkbox-label" data-key="includeCharter">Charter schools</label>
-      <label class="checkbox-label" data-key="showLastDay">Show last day of school</label>
+      <label class="checkbox-label" data-key="showLastDay">Show last day</label>
+      <label class="checkbox-label" data-key="showCalendar">Show breaks &amp; holidays</label>
     </div>
     <button id="searchBtn" onclick="runSearch()">
       <div class="spinner" id="spinner"></div>
@@ -103,7 +125,7 @@
 </main>
 
 <footer>
-  Data sourced in real-time from school websites. Dates may change — always verify with your school directly.
+  Data sourced in real-time from school websites. Dates may change — always verify with the school directly.
 </footer>
 
 <script>
@@ -117,6 +139,7 @@
       includePublic: document.querySelector('[data-key="includePublic"]').classList.contains('active'),
       includeCharter: document.querySelector('[data-key="includeCharter"]').classList.contains('active'),
       showLastDay: document.querySelector('[data-key="showLastDay"]').classList.contains('active'),
+      showCalendar: document.querySelector('[data-key="showCalendar"]').classList.contains('active'),
     };
   }
 
@@ -142,7 +165,7 @@
     }
 
     const radius = document.getElementById('radiusSelect').value;
-    const { includePrivate, includePublic, includeCharter, showLastDay } = getOptions();
+    const { includePrivate, includePublic, includeCharter, showLastDay, showCalendar } = getOptions();
 
     const btn = document.getElementById('searchBtn');
     const spinner = document.getElementById('spinner');
@@ -158,7 +181,7 @@
     results.style.display = 'none';
     results.innerHTML = '';
 
-    const messages = ['Finding schools near your location...', 'Looking up school calendars...', 'Checking start dates...', 'Almost done...'];
+    const messages = ['Finding schools near your location...', 'Looking up school calendars...', 'Checking dates and breaks...', 'Almost done...'];
     let msgIdx = 0;
     status.textContent = messages[0];
     const msgInterval = setInterval(() => { msgIdx = (msgIdx + 1) % messages.length; status.textContent = messages[msgIdx]; }, 3500);
@@ -171,14 +194,24 @@
       includeCharter ? 'charter' : ''
     ].filter(Boolean).join(', ') || 'public';
 
-    const systemPrompt = `You are a helpful assistant that finds school start dates for schools near a given location.
+    const calendarInstruction = showCalendar ? `
+- For each school, include a "calendar" array of holidays and break weeks. Each entry:
+  { "name": "Thanksgiving Break", "date": "Nov 24-28, 2025", "type": "break" or "holiday" }
+  Include: Thanksgiving, Winter Break, Spring Break, Fall Break (if applicable), major federal holidays when school is closed, any other notable days off.
+  Limit to 10 entries per school, sorted chronologically.
+- Also include a top-level "sharedEvents" array listing calendar events that appear to be consistent across most schools in the area (same name and roughly same dates). Use the same entry format.` : `
+- Set calendar to null for all schools.
+- Set sharedEvents to null.`;
+
+    const systemPrompt = `You are a helpful assistant that finds school start dates and calendar info for schools near a given location.
 
 Search for schools within approximately ${radius} miles of the given location. For each school or district, find their 2026-2027 school year start date. If 2026-2027 is not yet published, use the 2025-2026 date instead and note the year.
 
 Return ONLY a valid raw JSON object with no markdown, no code fences, no explanation. Use exactly this structure:
 {
   "location": "City, State",
-  "note": "brief note about data availability or null",
+  "note": "brief note or null",
+  "sharedEvents": [ { "name": "Winter Break", "date": "Dec 22 - Jan 2", "type": "break" } ] or null,
   "districts": [
     {
       "name": "School or District Name",
@@ -188,7 +221,8 @@ Return ONLY a valid raw JSON object with no markdown, no code fences, no explana
       "schoolYear": "2026-2027",
       "type": "private",
       "sourceUrl": "https://example.com or null",
-      "confidence": "confirmed"
+      "confidence": "confirmed",
+      "calendar": [ { "name": "Thanksgiving Break", "date": "Nov 24-28, 2025", "type": "break" } ] or null
     }
   ]
 }
@@ -201,6 +235,7 @@ Rules:
 - confidence must be: "confirmed", "estimated", or "unknown"
 - type must be: "public", "charter", or "private"
 ${showLastDay ? '- Include last day of school when known' : '- Set lastDay to null'}
+${calendarInstruction}
 - Return ONLY the JSON object, nothing else`;
 
     try {
@@ -209,7 +244,7 @@ ${showLastDay ? '- Include last day of school when known' : '- Set lastDay to nu
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-haiku-4-5',
-          max_tokens: 2000,
+          max_tokens: 4000,
           system: systemPrompt,
           messages: [{ role: 'user', content: `Find school start dates within ${radius} miles of: ${address}. Only include ${types} schools.` }]
         })
@@ -236,7 +271,7 @@ ${showLastDay ? '- Include last day of school when known' : '- Set lastDay to nu
         else throw new Error('Could not read the school data returned.');
       }
 
-      renderResults(parsed, address, radius, showLastDay);
+      renderResults(parsed, address, radius, showLastDay, showCalendar);
       status.textContent = '';
 
     } catch (err) {
@@ -250,7 +285,22 @@ ${showLastDay ? '- Include last day of school when known' : '- Set lastDay to nu
     btnText.textContent = 'Find school start dates';
   }
 
-  function renderResults(data, address, radius, showLastDay) {
+  function renderCalendarEvents(events) {
+    if (!events || !events.length) return '';
+    return `<div class="calendar-section">
+      <div class="calendar-section-title">Breaks &amp; Holidays</div>
+      ${events.map(e => `
+        <div class="calendar-event">
+          <span class="calendar-event-name">${e.name}</span>
+          <span>
+            <span class="calendar-event-type ${e.type === 'break' ? 'type-break' : 'type-holiday'}">${e.type === 'break' ? 'Break' : 'Holiday'}</span>
+            <span class="calendar-event-date">${e.date}</span>
+          </span>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  function renderResults(data, address, radius, showLastDay, showCalendar) {
     const results = document.getElementById('results');
     const districts = data.districts || [];
 
@@ -267,6 +317,19 @@ ${showLastDay ? '- Include last day of school when known' : '- Set lastDay to nu
 
     if (data.note) html += `<div class="note-banner">${data.note}</div>`;
 
+    // Shared calendar summary
+    if (showCalendar && data.sharedEvents && data.sharedEvents.length) {
+      html += `<div class="summary-card">
+        <h4>&#128197; Dates consistent across most schools</h4>
+        ${data.sharedEvents.map(e => `
+          <div class="summary-event">
+            <span class="summary-event-name">${e.name}</span>
+            <span class="summary-event-date">${e.date}</span>
+          </div>`).join('')}
+      </div>`;
+    }
+
+    // Individual school cards
     for (const d of districts) {
       const hasDate = d.startDate && d.startDate !== 'Not yet published';
       const typeLabel = d.type === 'charter' ? ' &bull; Charter' : d.type === 'private' ? ' &bull; Private' : ' &bull; Public';
@@ -286,6 +349,7 @@ ${showLastDay ? '- Include last day of school when known' : '- Set lastDay to nu
           <div class="detail-item">${confidence}</div>
         </div>
         ${d.sourceUrl ? `<a href="${d.sourceUrl}" class="source-link" target="_blank">View school calendar &#8599;</a>` : ''}
+        ${showCalendar ? renderCalendarEvents(d.calendar) : ''}
       </div>`;
     }
 
