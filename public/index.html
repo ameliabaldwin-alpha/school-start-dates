@@ -169,7 +169,7 @@
 
     const systemPrompt = `You are a helpful assistant that finds schools near a given location.
 
-Find schools within approximately ${radius} miles of the given location. For each school or district return their name, location, school type, approximate start date for 2026-2027 (or 2025-2026 if not yet available), and most importantly the URL of their official school calendar page.
+Find schools within approximately ${radius} miles of the given location. For each school or district return their name, location, school type, approximate start date for 2026-2027 (or 2025-2026 if not yet available), and the URL of their official district homepage.
 
 Return ONLY a valid raw JSON object with no markdown, no code fences, no explanation:
 {
@@ -182,7 +182,6 @@ Return ONLY a valid raw JSON object with no markdown, no code fences, no explana
       "startDate": "August 18, 2026",
       "schoolYear": "2026-2027",
       "type": "public",
-      "calendarUrl": "https://www.austinisd.org/calendar",
       "websiteUrl": "https://www.austinisd.org"
     }
   ]
@@ -190,10 +189,8 @@ Return ONLY a valid raw JSON object with no markdown, no code fences, no explana
 
 Rules:
 - Only include ${types} schools, up to 8 results
-- calendarUrl must be the real known URL of the district's academic calendar page — never construct a URL by guessing or appending /calendar to a domain. Only use URLs you are confident actually exist.
-- If you are not certain of the exact calendar page URL for a school, use the district's main website homepage URL instead
-- websiteUrl must always be the district's main website homepage
-- startDate is approximate — users will verify on the calendar
+- websiteUrl must be the district's main homepage only — never guess subpages
+- startDate is approximate — users will verify on the school website
 - type: "public", "charter", or "private"
 - Return ONLY the JSON object, nothing else`;
 
@@ -273,7 +270,7 @@ Rules:
         <div class="district-details">
           <div class="detail-item"><strong>School year:</strong> ${d.schoolYear || '2026-2027'}</div>
         </div>
-        ${d.calendarUrl || d.websiteUrl ? `<a href="${d.calendarUrl || d.websiteUrl}" class="cal-link" target="_blank">&#128197; ${d.calendarUrl ? 'View official school calendar' : 'Visit school website'} &#8599;</a>` : ''}
+        ${d.websiteUrl ? `<a href="${d.websiteUrl}" class="cal-link" target="_blank">&#127968; Visit school website &#8599;</a>` : ''}
       </div>`;
     });
 
