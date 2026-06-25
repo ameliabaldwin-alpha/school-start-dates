@@ -280,54 +280,17 @@ ${showLastDay ? '- Include last day of school when known' : '- Set lastDay to nu
     calSpinner.style.display = 'inline-block';
     btn.querySelector('.cal-btn-text').textContent = 'Loading...';
 
-    const systemPrompt = `You are a helpful assistant that retrieves accurate school calendar information from official district websites.
-
-Search for the official ${schoolYear} academic calendar for "${schoolName}". Find the exact list of holidays, breaks, and days off as published on their official website.
-
-Return ONLY a raw JSON object with no markdown or explanation:
-{
-  "sourceUrl": "https://actual-calendar-page-url.com",
-  "schoolYear": "${schoolYear}",
-  "events": [
-    { "name": "Event name exactly as listed", "date": "exact dates", "type": "break or holiday" }
-  ]
-}
-
-Rules:
-- Only include events from the official school/district website
-- Include ALL holidays and breaks listed — do not omit any
-- type must be "break" for multi-day breaks or "holiday" for single days off
-- Sort events chronologically
-- sourceUrl must be the real URL of the calendar page
-- Return ONLY the JSON object`;
-
     try {
-      const response = await fetch('/api/search', {
+      const response = await fetch('/api/calendar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
-          max_tokens: 3000,
-          system: systemPrompt,
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-          messages: [{ role: 'user', content: `Find the complete ${schoolYear} academic calendar for ${schoolName} including all holidays, breaks, and days off.` }]
-        })
+        body: JSON.stringify({ schoolName, schoolYear })
       });
 
       if (!response.ok) throw new Error('Server error');
 
-      const data = await response.json();
-      const textBlock = (data.content || []).find(b => b.type === 'text');
-      if (!textBlock) throw new Error('No calendar data returned.');
-
-      let raw = textBlock.text.trim().replace(/```json|```/g, '').trim();
-      let parsed;
-      try { parsed = JSON.parse(raw); }
-      catch {
-        const match = raw.match(/\{[\s\S]*\}/);
-        if (match) parsed = JSON.parse(match[0]);
-        else throw new Error('Could not read calendar data.');
-      }
+      const parsed = await response.json();
+      if (parsed.error) throw new Error(parsed.error);
 
       const events = parsed.events || [];
       const sourceUrl = parsed.sourceUrl;
