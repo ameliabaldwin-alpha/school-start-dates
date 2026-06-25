@@ -272,10 +272,7 @@ Rules:
         <div class="district-details">
           <div class="detail-item"><strong>School year:</strong> ${d.schoolYear || '2026-2027'}</div>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
-          ${d.websiteUrl ? `<a href="${d.websiteUrl}" class="cal-link" target="_blank">&#127968; Visit school website &#8599;</a>` : ''}
-          <a href="https://www.google.com/search?q=${encodeURIComponent(d.name + ' ' + d.city + ' official website')}" class="search-link" target="_blank">&#128269; Search for school</a>
-        </div>
+        <a href="https://www.google.com/search?q=${encodeURIComponent(d.name + ' ' + d.city + ' official website')}" class="search-link" target="_blank">&#128269; Search for school website &#8599;</a>
       </div>`;
     });
 
