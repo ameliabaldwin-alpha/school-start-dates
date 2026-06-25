@@ -195,17 +195,21 @@
     ].filter(Boolean).join(', ') || 'public';
 
     const calendarInstruction = showCalendar ? `
-- For each school, include a "calendar" array of holidays and break weeks. Each entry:
-  { "name": "Thanksgiving Break", "date": "Nov 24-28, 2025", "type": "break" or "holiday" }
-  Include: Thanksgiving, Winter Break, Spring Break, Fall Break (if applicable), major federal holidays when school is closed, any other notable days off.
-  Limit to 10 entries per school, sorted chronologically.
-- Also include a top-level "sharedEvents" array listing calendar events that appear to be consistent across most schools in the area (same name and roughly same dates). Use the same entry format.` : `
+- For each school, use web search to find their OFFICIAL district calendar page for 2026-2027 (or 2025-2026 if not available). Extract the exact dates listed.
+- Include a "calendar" array with ALL days off, holidays, and break weeks as listed on the official calendar. Each entry:
+  { "name": "event name exactly as listed", "date": "exact dates from calendar", "type": "break" or "holiday" }
+- Do not guess or use generic dates — only include what is actually on the official calendar.
+- Sort entries chronologically. Include all entries found, no limit.
+- Also include a top-level "sharedEvents" array listing events that appear on most schools calendars with the same or similar dates.` : `
 - Set calendar to null for all schools.
 - Set sharedEvents to null.`;
 
-    const systemPrompt = `You are a helpful assistant that finds school start dates and calendar info for schools near a given location.
+    const systemPrompt = `You are a helpful assistant that finds accurate school calendar information by searching official school district websites.
 
-Search for schools within approximately ${radius} miles of the given location. For each school or district, find their 2026-2027 school year start date. If 2026-2027 is not yet published, use the 2025-2026 date instead and note the year.
+Use web search to find schools within approximately ${radius} miles of the given location. For each school or district:
+1. Search for their official website and 2026-2027 academic calendar
+2. If 2026-2027 is not published, search for their 2025-2026 calendar
+3. Extract the exact first day of school, last day, and all holidays/breaks from the official source
 
 Return ONLY a valid raw JSON object with no markdown, no code fences, no explanation. Use exactly this structure:
 {
@@ -220,9 +224,9 @@ Return ONLY a valid raw JSON object with no markdown, no code fences, no explana
       "lastDay": "Month Day, Year or null",
       "schoolYear": "2026-2027",
       "type": "private",
-      "sourceUrl": "https://example.com or null",
+      "sourceUrl": "https://actual-district-calendar-url.com",
       "confidence": "confirmed",
-      "calendar": [ { "name": "Thanksgiving Break", "date": "Nov 24-28, 2025", "type": "break" } ] or null
+      "calendar": [ { "name": "Thanksgiving Break", "date": "Nov 24-28, 2026", "type": "break" } ] or null
     }
   ]
 }
@@ -230,11 +234,12 @@ Return ONLY a valid raw JSON object with no markdown, no code fences, no explana
 Rules:
 - Only include ${types} schools
 - Include up to 8 results sorted by start date
-- Never use "Not yet published" — always give a real date
-- If 2026-2027 unavailable, use 2025-2026 and set schoolYear accordingly
-- confidence must be: "confirmed", "estimated", or "unknown"
+- Never guess dates — only use dates found on official school/district websites
+- If 2026-2027 unavailable, use 2025-2026 and set schoolYear to "2025-2026"
+- confidence: "confirmed" if from official site, "estimated" if from news/third-party, "unknown" if not found
 - type must be: "public", "charter", or "private"
-${showLastDay ? '- Include last day of school when known' : '- Set lastDay to null'}
+- sourceUrl must be the actual URL of the calendar page you found
+${showLastDay ? '- Include last day of school when found on the official calendar' : '- Set lastDay to null'}
 ${calendarInstruction}
 - Return ONLY the JSON object, nothing else`;
 
@@ -243,10 +248,11 @@ ${calendarInstruction}
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5',
-          max_tokens: 4000,
+          model: 'claude-sonnet-4-5',
+          max_tokens: 8000,
           system: systemPrompt,
-          messages: [{ role: 'user', content: `Find school start dates within ${radius} miles of: ${address}. Only include ${types} schools.` }]
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+          messages: [{ role: 'user', content: `Search for ${types} schools within ${radius} miles of ${address}. Find their official 2026-2027 academic calendars (or 2025-2026 if not yet published) and extract exact dates for first day of school, last day, and all holidays and breaks.` }]
         })
       });
 
