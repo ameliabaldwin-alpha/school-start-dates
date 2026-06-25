@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>School Start Dates Near You</title>
+<title>School Calendar Details</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-EP7QR4DS9R"></script>
 <script>
@@ -83,7 +83,7 @@
 <header>
   <div class="logo-icon">&#127979;</div>
   <div>
-    <h1>School Start Dates</h1>
+    <h1>School Calendar Details</h1>
     <p>Look up first day of school for any address</p>
   </div>
 </header>
@@ -108,12 +108,10 @@
       <label class="checkbox-label active" data-key="includePrivate">Private schools</label>
       <label class="checkbox-label" data-key="includePublic">Public schools</label>
       <label class="checkbox-label" data-key="includeCharter">Charter schools</label>
-      <label class="checkbox-label" data-key="showLastDay">Show last day</label>
-      <label class="checkbox-label" data-key="showCalendar">Show breaks &amp; holidays</label>
     </div>
     <button id="searchBtn" onclick="runSearch()">
       <div class="spinner" id="spinner"></div>
-      <span id="btnText">Find school start dates</span>
+      <span id="btnText">Find school calendar details</span>
     </button>
     <div id="status"></div>
     <div id="errorBox"></div>
@@ -135,8 +133,8 @@
       includePrivate: document.querySelector('[data-key="includePrivate"]').classList.contains('active'),
       includePublic: document.querySelector('[data-key="includePublic"]').classList.contains('active'),
       includeCharter: document.querySelector('[data-key="includeCharter"]').classList.contains('active'),
-      showLastDay: document.querySelector('[data-key="showLastDay"]').classList.contains('active'),
-      showCalendar: document.querySelector('[data-key="showCalendar"]').classList.contains('active'),
+      showLastDay: true,
+      showCalendar: true,
     };
   }
 
@@ -276,14 +274,14 @@ ${calendarInstruction}
 
     btn.disabled = false;
     spinner.style.display = 'none';
-    btnText.textContent = 'Find school start dates';
+    btnText.textContent = 'Find school calendar details';
   }
 
   function renderCalendarEvents(events) {
     if (!events || !events.length) return '';
     return `<div class="calendar-section">
       <div class="calendar-section-title">Breaks &amp; Holidays</div>
-      <div class="calendar-disclaimer">&#9888; These dates are AI-generated and may not be fully accurate. Always verify directly with the school before making plans.</div>
+      <div class="calendar-disclaimer">&#9888; These dates are AI-generated and may not be fully accurate. Always verify directly on the linked school calendar before making plans.</div>
       ${events.map(e => `
         <div class="calendar-event">
           <span class="calendar-event-name">${e.name}</span>
