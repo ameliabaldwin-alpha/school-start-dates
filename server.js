@@ -17,12 +17,26 @@ app.post('/api/search', async (req, res) => {
     'anthropic-version': '2023-06-01'
   };
 
+  const hasWebSearch = (req.body.tools || []).some(t => t.name === 'web_search');
+
   try {
+    // Simple single call for non-web-search requests (main school search)
+    if (!hasWebSearch) {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(req.body)
+      });
+      const data = await response.json();
+      if (!response.ok) return res.status(response.status).json(data);
+      return res.json(data);
+    }
+
+    // Agentic loop for web search requests (calendar lookup)
     let messages = [...req.body.messages];
     const requestBody = { ...req.body };
 
-    // Agentic loop — handle web search tool calls until end_turn
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 20; i++) {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers,
@@ -30,47 +44,37 @@ app.post('/api/search', async (req, res) => {
       });
 
       const data = await response.json();
+      if (!response.ok) return res.status(response.status).json(data);
 
-      if (!response.ok) {
-        return res.status(response.status).json(data);
-      }
-
-      // Final answer — return it
+      // Done — return final answer
       if (data.stop_reason === 'end_turn') {
         return res.json(data);
       }
 
-      // Tool use — collect results and continue
+      // Tool use — pass back results and continue
       if (data.stop_reason === 'tool_use') {
         const toolUseBlocks = data.content.filter(b => b.type === 'tool_use');
-
-        // Add assistant message with tool calls
         messages.push({ role: 'assistant', content: data.content });
-
-        // Build tool results — for server-side web_search the results come back in the response
-        // We just need to acknowledge each tool_use block
         const toolResults = toolUseBlocks.map(block => ({
           type: 'tool_result',
           tool_use_id: block.id,
           content: block.output || 'Search completed.'
         }));
-
         messages.push({ role: 'user', content: toolResults });
         continue;
       }
 
-      // pause_turn — web search is running server-side, just continue
+      // pause_turn — web search running server-side, continue
       if (data.stop_reason === 'pause_turn') {
         messages.push({ role: 'assistant', content: data.content });
         messages.push({ role: 'user', content: [{ type: 'text', text: 'Continue and return the final JSON.' }] });
         continue;
       }
 
-      // Any other stop reason — return what we have
       return res.json(data);
     }
 
-    res.status(500).json({ error: 'Search took too long. Please try again.' });
+    res.status(500).json({ error: 'Calendar search took too long. Please try again.' });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
