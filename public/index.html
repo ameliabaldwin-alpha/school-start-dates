@@ -182,14 +182,17 @@ Return ONLY a valid raw JSON object with no markdown, no code fences, no explana
       "startDate": "August 18, 2026",
       "schoolYear": "2026-2027",
       "type": "public",
-      "calendarUrl": "https://www.austinisd.org/calendar"
+      "calendarUrl": "https://www.austinisd.org/calendar",
+      "websiteUrl": "https://www.austinisd.org"
     }
   ]
 }
 
 Rules:
 - Only include ${types} schools, up to 8 results
-- calendarUrl must be the direct URL to the school or district's calendar page — not the homepage
+- calendarUrl must be the real known URL of the district's academic calendar page — never construct a URL by guessing or appending /calendar to a domain. Only use URLs you are confident actually exist.
+- If you are not certain of the exact calendar page URL for a school, use the district's main website homepage URL instead
+- websiteUrl must always be the district's main website homepage
 - startDate is approximate — users will verify on the calendar
 - type: "public", "charter", or "private"
 - Return ONLY the JSON object, nothing else`;
@@ -270,7 +273,7 @@ Rules:
         <div class="district-details">
           <div class="detail-item"><strong>School year:</strong> ${d.schoolYear || '2026-2027'}</div>
         </div>
-        ${d.calendarUrl ? `<a href="${d.calendarUrl}" class="cal-link" target="_blank">&#128197; View official school calendar &#8599;</a>` : ''}
+        ${d.calendarUrl || d.websiteUrl ? `<a href="${d.calendarUrl || d.websiteUrl}" class="cal-link" target="_blank">&#128197; ${d.calendarUrl ? 'View official school calendar' : 'Visit school website'} &#8599;</a>` : ''}
       </div>`;
     });
 
