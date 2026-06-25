@@ -189,7 +189,7 @@
     ].filter(Boolean).join(', ') || 'public';
 
     const calendarInstruction = showCalendar ? `
-- For each school, include a "calendar" array of known holidays and break weeks. Each entry:
+- For each school, include a "calendar" array of known holidays and break weeks from your training data. Each entry:
   { "name": "event name", "date": "dates", "type": "break or holiday" }
   Include: Thanksgiving, Winter Break, Spring Break, Fall Break if applicable, major federal holidays when school is closed, and any district-specific days off you know about.
   Sort chronologically.
@@ -197,9 +197,9 @@
 - Set calendar to null for all schools.
 - Set sharedEvents to null.`;
 
-    const systemPrompt = `You are a helpful assistant that finds school start dates and calendar info for schools near a given location.
+    const systemPrompt = `You are a helpful assistant that finds accurate school start and end dates by searching official school district websites.
 
-Find schools within approximately ${radius} miles of the given location. For each school or district, find their 2026-2027 school year start date. If 2026-2027 is not yet published, use the 2025-2026 date instead.
+Use web search to find schools within approximately ${radius} miles of the given location. For each school or district, search for their official 2026-2027 academic calendar page and extract the exact first day and last day of school. If 2026-2027 is not published, use 2025-2026 instead.
 
 Return ONLY a valid raw JSON object with no markdown, no code fences, no explanation:
 {
@@ -237,10 +237,11 @@ ${calendarInstruction}
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5',
+          model: 'claude-sonnet-4-5',
           max_tokens: 4000,
           system: systemPrompt,
-          messages: [{ role: 'user', content: `Find ${types} schools within ${radius} miles of ${address}.` }]
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+          messages: [{ role: 'user', content: `Search for ${types} schools within ${radius} miles of ${address}. Find their official 2026-2027 start and end dates by searching each school or district website.` }]
         })
       });
 
