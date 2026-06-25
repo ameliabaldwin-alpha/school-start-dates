@@ -233,58 +233,21 @@ ${calendarInstruction}
 - Return ONLY the JSON object, nothing else`;
 
     try {
-      const response = await fetch('/api/search', {
+      // Use dedicated web search endpoint — server handles all JSON extraction
+      const response = await fetch('/api/search-web', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
-          max_tokens: 4000,
-          system: systemPrompt,
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-          messages: [{ role: 'user', content: `Search for ${types} schools within ${radius} miles of ${address}. Find their official 2026-2027 start and end dates by searching each school or district website.` }]
-        })
+        body: JSON.stringify({ address, radius, types, showLastDay })
       });
 
       clearInterval(msgInterval);
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err.error?.message || `Server error ${response.status}`);
+        throw new Error(err.error || `Server error ${response.status}`);
       }
 
-      const data = await response.json();
-
-      // Collect all text blocks from response
-      const allText = (data.content || [])
-        .filter(b => b.type === 'text')
-        .map(b => b.text)
-        .join('');
-
-      if (!allText) throw new Error('No response received.');
-
-      // Aggressively extract JSON
-      let parsed;
-      const clean = allText.replace(/```json|```/g, '').trim();
-      // Try full text first
-      try { parsed = JSON.parse(clean); }
-      catch {
-        // Find the largest JSON object in the response
-        const match = clean.match(/\{[\s\S]*\}/);
-        if (match) {
-          try { parsed = JSON.parse(match[0]); }
-          catch {
-            // Try to find just from "location" onwards
-            const loc = clean.indexOf('"location"');
-            if (loc > -1) {
-              try { parsed = JSON.parse('{' + clean.slice(loc)); }
-              catch { throw new Error('Could not read the school data returned.'); }
-            } else {
-              throw new Error('Could not read the school data returned.');
-            }
-          }
-        } else {
-          throw new Error('Could not read the school data returned.');
-        }
-      }
+      const parsed = await response.json();
+      if (parsed.error) throw new Error(parsed.error);
 
       renderResults(parsed, address, radius, showLastDay, showCalendar);
       status.textContent = '';
